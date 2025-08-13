@@ -1,0 +1,112 @@
+<!-- templates/contractors_list.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="bi bi-people text-dark"></i> Contractor Management</h3>
+    <div>
+        <a href="{{ url_for('contractors.register_contractor') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Register Contractor
+        </a>
+        <a href="{{ url_for('contractors.visitor_checkin') }}" class="btn btn-outline-success">
+            <i class="bi bi-person-check"></i> Visitor Check-in
+        </a>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center bg-primary text-white">
+            <div class="card-body">
+                <h4>{{ stats.total }}</h4>
+                <small>Total Contractors</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-success text-white">
+            <div class="card-body">
+                <h4>{{ stats.active }}</h4>
+                <small>Active</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-warning text-white">
+            <div class="card-body">
+                <h4>{{ stats.pending }}</h4>
+                <small>Pending Approval</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-danger text-white">
+            <div class="card-body">
+                <h4>{{ stats.training_required }}</h4>
+                <small>Training Required</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contractors Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Company</th>
+                        <th>Contact Person</th>
+                        <th>Phone</th>
+                        <th>Work Description</th>
+                        <th>Status</th>
+                        <th>Safety Training</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for contractor in contractors %}
+                    <tr>
+                        <td><code>{{ contractor.id[:8] }}</code></td>
+                        <td><strong>{{ contractor.company_name }}</strong></td>
+                        <td>{{ contractor.contact_person }}</td>
+                        <td>{{ contractor.phone }}</td>
+                        <td>{{ contractor.work_description[:50] }}{% if contractor.work_description|length > 50 %}...{% endif %}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if contractor.status == 'approved' else ('warning' if contractor.status == 'pending_approval' else 'secondary') }}">
+                                {{ contractor.status|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if contractor.safety_training_completed %}
+                                <span class="badge bg-success">Completed</span>
+                            {% else %}
+                                <span class="badge bg-warning">Required</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('contractors.contractor_detail', contractor_id=contractor.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if not contractors %}
+        <div class="text-center py-5">
+            <i class="bi bi-people fs-1 text-muted"></i>
+            <h5 class="text-muted mt-3">No Contractors Found</h5>
+            <p class="text-muted">Manage contractor safety requirements and training verification.</p>
+            <a href="{{ url_for('contractors.register_contractor') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Register First Contractor
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

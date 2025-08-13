@@ -1,0 +1,215 @@
+<!-- templates/audit_new.html - New Audit Creation Template -->
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-4">
+    <i class="bi bi-plus-circle text-primary"></i> Schedule New Audit
+</h3>
+
+<form method="post" class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h6 class="mb-0">Audit Details</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Audit Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="title" required 
+                           placeholder="e.g., Q1 Safety Walk-through">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Audit Type <span class="text-danger">*</span></label>
+                    <select class="form-select" name="type" required>
+                        <option value="">Select audit type</option>
+                        <option value="safety_walk">Safety Walk-through</option>
+                        <option value="chemical_audit">Chemical Management Audit</option>
+                        <option value="equipment_check">Equipment Safety Check</option>
+                        <option value="emergency_prep">Emergency Preparedness</option>
+                        <option value="contractor_safety">Contractor Safety Audit</option>
+                        <option value="environmental">Environmental Compliance</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Template <span class="text-danger">*</span></label>
+                    <select class="form-select" name="template" required onchange="loadTemplate(this.value)">
+                        <option value="">Select template</option>
+                        {% for template in templates %}
+                        <option value="{{ template.id }}">{{ template.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">Choose a checklist template for this audit type</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Auditor <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="auditor" required
+                           placeholder="Name of person conducting audit">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Location <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="location" required
+                           placeholder="Building, area, or department">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Scheduled Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" name="scheduled_date" required
+                           min="{{ moment().format('YYYY-MM-DD') }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Template Preview -->
+        <div id="templatePreview" style="display: none;">
+            <hr>
+            <h6>Checklist Preview</h6>
+            <div id="checklistItems" class="border rounded p-3 bg-light">
+                <!-- Checklist items will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="card-footer">
+        <div class="d-flex justify-content-between">
+            <a href="{{ url_for('audits.audits_list') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-calendar-plus"></i> Schedule Audit
+            </button>
+        </div>
+    </div>
+</form>
+
+<!-- Template Details Modal -->
+<div class="modal fade" id="templateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Template Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="templateDetails">
+                    <!-- Template details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="selectTemplate()">Use This Template</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const templates = {
+    'safety_walk': {
+        name: 'Safety Walk-through',
+        description: 'General safety inspection checklist',
+        items: [
+            'Are all walkways clear of obstacles?',
+            'Are emergency exits clearly marked and unobstructed?',
+            'Are all required safety signs posted and visible?',
+            'Is personal protective equipment available and in good condition?',
+            'Are spill kits accessible and properly stocked?'
+        ]
+    },
+    'chemical_audit': {
+        name: 'Chemical Management Audit',
+        description: 'Chemical storage and handling compliance',
+        items: [
+            'Are all chemicals properly labeled with hazard information?',
+            'Are SDS readily accessible for all chemicals on site?',
+            'Are incompatible chemicals stored separately?',
+            'Are secondary containment systems in place and functional?',
+            'Is chemical inventory accurate and up to date?'
+        ]
+    },
+    'equipment_check': {
+        name: 'Equipment Safety Check',
+        description: 'Equipment and machinery safety inspection',
+        items: [
+            'Are all safety guards in place and secure?',
+            'Are emergency stop buttons functional and accessible?',
+            'Is equipment properly maintained and inspected?',
+            'Are operators trained and certified for equipment use?',
+            'Are lockout/tagout procedures properly implemented?'
+        ]
+    }
+};
+
+function loadTemplate(templateId) {
+    const preview = document.getElementById('templatePreview');
+    const itemsContainer = document.getElementById('checklistItems');
+    
+    if (!templateId || !templates[templateId]) {
+        preview.style.display = 'none';
+        return;
+    }
+    
+    const template = templates[templateId];
+    
+    let html = `<h6>${template.name}</h6>`;
+    html += `<p class="text-muted">${template.description}</p>`;
+    html += '<ul class="list-group list-group-flush">';
+    
+    template.items.forEach((item, index) => {
+        html += `<li class="list-group-item d-flex align-items-center">
+            <i class="bi bi-check-circle text-success me-2"></i>
+            ${item}
+        </li>`;
+    });
+    
+    html += '</ul>';
+    html += `<div class="mt-3">
+        <small class="text-muted">This template contains ${template.items.length} checklist items</small>
+    </div>`;
+    
+    itemsContainer.innerHTML = html;
+    preview.style.display = 'block';
+}
+
+function showTemplateDetails(templateId) {
+    const template = templates[templateId];
+    if (!template) return;
+    
+    document.getElementById('templateDetails').innerHTML = `
+        <h6>${template.name}</h6>
+        <p>${template.description}</p>
+        <div class="checklist-preview">
+            ${template.items.map(item => `<div class="form-check">
+                <input class="form-check-input" type="checkbox" disabled>
+                <label class="form-check-label">${item}</label>
+            </div>`).join('')}
+        </div>
+    `;
+    
+    new bootstrap.Modal(document.getElementById('templateModal')).show();
+}
+
+// Set default date to tomorrow
+document.addEventListener('DOMContentLoaded', function() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dateInput = document.querySelector('input[name="scheduled_date"]');
+    if (dateInput) {
+        dateInput.value = tomorrow.toISOString().split('T')[0];
+    }
+});
+</script>
+{% endblock %}

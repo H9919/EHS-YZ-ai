@@ -1,0 +1,365 @@
+<!-- templates/dashboard.html - Fixed Dashboard with working links -->
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-4">
+                <i class="bi bi-graph-up text-primary"></i> 
+                EHS Management Dashboard
+            </h3>
+        </div>
+    </div>
+
+    <!-- Quick Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle fs-1"></i>
+                    <h4 class="mt-2" id="incidentCount">{{ stats.incidents.total if stats.incidents else 0 }}</h4>
+                    <p class="mb-0">Total Incidents</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/incidents" class="text-white text-decoration-none">
+                        View All <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-exclamation fs-1"></i>
+                    <h4 class="mt-2" id="safetyCount">{{ stats.safety_concerns.total if stats.safety_concerns else 0 }}</h4>
+                    <p class="mb-0">Safety Concerns</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/safety-concerns" class="text-white text-decoration-none">
+                        View All <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-arrow-repeat fs-1"></i>
+                    <h4 class="mt-2" id="capaCount">{{ stats.capas.total if stats.capas else 0 }}</h4>
+                    <p class="mb-0">CAPAs</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/capa" class="text-white text-decoration-none">
+                        View All <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark-text fs-1"></i>
+                    <h4 class="mt-2" id="sdsCount">{{ stats.sds.total if stats.sds else 0 }}</h4>
+                    <p class="mb-0">SDS Documents</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/sds" class="text-white text-decoration-none">
+                        View Library <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning-charge"></i> Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="/incidents/new" class="btn btn-danger btn-lg w-100">
+                                <i class="bi bi-plus-circle mb-2 d-block fs-1"></i>
+                                Report Incident
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="/safety-concerns/new" class="btn btn-warning btn-lg w-100">
+                                <i class="bi bi-shield-plus mb-2 d-block fs-1"></i>
+                                Safety Concern
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="/sds/upload" class="btn btn-success btn-lg w-100">
+                                <i class="bi bi-upload mb-2 d-block fs-1"></i>
+                                Upload SDS
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="/risk/assess" class="btn btn-info btn-lg w-100">
+                                <i class="bi bi-graph-up mb-2 d-block fs-1"></i>
+                                Risk Assessment
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Modules -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Incident Management
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Create and track incidents with completeness validation, 
+                        risk assessment, and automated CAPA generation.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-primary" href="/incidents">
+                            <i class="bi bi-list"></i> View All Incidents
+                        </a>
+                        <a class="btn btn-outline-primary" href="/incidents/new">
+                            <i class="bi bi-plus"></i> New Incident
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-file-earmark-text"></i> SDS Library
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        View, chat with, download, and generate QR codes for 
+                        Safety Data Sheets with AI-powered Q&A.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-success" href="/sds">
+                            <i class="bi bi-library"></i> Browse Library
+                        </a>
+                        <a class="btn btn-outline-success" href="/sds/upload">
+                            <i class="bi bi-upload"></i> Upload SDS
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-shield-exclamation"></i> Safety Management
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Report safety concerns, conduct risk assessments, 
+                        and manage corrective actions with our OSCR system.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-warning" href="/safety-concerns">
+                            <i class="bi bi-shield-check"></i> Safety Concerns
+                        </a>
+                        <a class="btn btn-outline-warning" href="/risk/assess">
+                            <i class="bi bi-graph-up"></i> Risk Assessment
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Modules Row -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-arrow-repeat"></i> CAPA Management
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Track Corrective and Preventive Actions with 
+                        automated workflows and SLA monitoring.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-info" href="/capa">
+                            <i class="bi bi-list-check"></i> View CAPAs
+                        </a>
+                        <a class="btn btn-outline-info" href="/capa/new">
+                            <i class="bi bi-plus"></i> New CAPA
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-clipboard-check"></i> Audits & Inspections
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Conduct safety audits, track compliance, 
+                        and generate findings with smart checklists.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-secondary" href="/audits">
+                            <i class="bi bi-clipboard-data"></i> View Audits
+                        </a>
+                        <a class="btn btn-outline-secondary" href="/audits/new">
+                            <i class="bi bi-plus"></i> New Audit
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-people"></i> Contractor Management
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Manage contractor safety requirements, 
+                        training verification, and visitor check-ins.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-dark" href="/contractors">
+                            <i class="bi bi-building"></i> View Contractors
+                        </a>
+                        <a class="btn btn-outline-dark" href="/contractors/register">
+                            <i class="bi bi-person-plus"></i> Register New
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-gear"></i> System Status
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-circle-fill text-success me-2"></i>
+                                <span>AI Chatbot: Online</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-circle-fill text-success me-2"></i>
+                                <span>Database: Connected</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-circle-fill text-success me-2"></i>
+                                <span>File Storage: Available</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-circle-fill text-info me-2"></i>
+                                <span>Memory Optimized: Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load real-time stats
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardStats();
+    
+    // Auto-refresh stats every 30 seconds
+    setInterval(loadDashboardStats, 30000);
+});
+
+function loadDashboardStats() {
+    fetch('/api/stats')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Update incident count
+            if (data.incidents && data.incidents.total !== undefined) {
+                document.getElementById('incidentCount').textContent = data.incidents.total;
+            }
+            
+            // Update safety concerns count
+            if (data.safety_concerns && data.safety_concerns.total !== undefined) {
+                document.getElementById('safetyCount').textContent = data.safety_concerns.total;
+            }
+            
+            // Update CAPA count
+            if (data.capas && data.capas.total !== undefined) {
+                document.getElementById('capaCount').textContent = data.capas.total;
+            }
+            
+            // Update SDS count
+            if (data.sds && data.sds.total !== undefined) {
+                document.getElementById('sdsCount').textContent = data.sds.total;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading dashboard stats:', error);
+            // Keep existing values on error
+        });
+}
+
+// Add click tracking for analytics
+document.querySelectorAll('a[href^="/"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        console.log('Dashboard navigation:', href);
+        
+        // You could send analytics data here
+        // Analytics.track('dashboard_click', { destination: href });
+    });
+});
+</script>
+{% endblock %}

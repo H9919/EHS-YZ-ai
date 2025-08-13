@@ -1,0 +1,118 @@
+<!-- templates/audits_list.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="bi bi-clipboard-check text-secondary"></i> Audits & Inspections</h3>
+    <a href="{{ url_for('audits.new_audit') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> New Audit
+    </a>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center bg-primary text-white">
+            <div class="card-body">
+                <h4>{{ stats.total }}</h4>
+                <small>Total Audits</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-warning text-white">
+            <div class="card-body">
+                <h4>{{ stats.scheduled }}</h4>
+                <small>Scheduled</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-success text-white">
+            <div class="card-body">
+                <h4>{{ stats.completed }}</h4>
+                <small>Completed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-info text-white">
+            <div class="card-body">
+                <h4>{{ stats.avg_score }}%</h4>
+                <small>Avg Score</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Audits Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Auditor</th>
+                        <th>Location</th>
+                        <th>Scheduled Date</th>
+                        <th>Status</th>
+                        <th>Score</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for audit in audits %}
+                    <tr>
+                        <td><code>{{ audit.id[:8] }}</code></td>
+                        <td><strong>{{ audit.title }}</strong></td>
+                        <td>{{ audit.type }}</td>
+                        <td>{{ audit.auditor }}</td>
+                        <td>{{ audit.location }}</td>
+                        <td>{{ audit.scheduled_date }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if audit.status == 'completed' else ('warning' if audit.status == 'in_progress' else 'secondary') }}">
+                                {{ audit.status|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if audit.status == 'completed' %}
+                                <span class="badge bg-{{ 'success' if audit.score >= 80 else ('warning' if audit.score >= 60 else 'danger') }}">
+                                    {{ audit.score }}%
+                                </span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('audits.audit_detail', audit_id=audit.id) }}" class="btn btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                {% if audit.status == 'scheduled' %}
+                                <a href="{{ url_for('audits.conduct_audit', audit_id=audit.id) }}" class="btn btn-outline-success">
+                                    <i class="bi bi-play"></i> Conduct
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if not audits %}
+        <div class="text-center py-5">
+            <i class="bi bi-clipboard-check fs-1 text-muted"></i>
+            <h5 class="text-muted mt-3">No Audits Found</h5>
+            <p class="text-muted">Audits help ensure compliance and identify improvement opportunities.</p>
+            <a href="{{ url_for('audits.new_audit') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Schedule First Audit
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
