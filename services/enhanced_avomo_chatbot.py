@@ -1,17 +1,21 @@
+# -*- coding: utf-8 -*-
 # =============================
 # services/enhanced_avomo_chatbot.py
 # =============================
 # AVOMO-specific chatbot with file-backed sessions so it survives multi-process deployments (e.g., Render)
 
-import json, time, re
+import json
+import time
+import re
 from pathlib import Path
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any, Optional
 
 from .avomo_incident_structure import AVOMOIncidentStructure, AVOMOIntentClassifier
 from .ehs_chatbot import SmartEHSChatbot
 
 SESS_DIR = Path("data/tmp/sessions")
 SESS_DIR.mkdir(parents=True, exist_ok=True)
+
 
 class AVOMOIncidentChatbot(SmartEHSChatbot):
     """Enhanced chatbot with AVOMO-specific incident reporting (OSHA-compliant).
@@ -25,7 +29,8 @@ class AVOMOIncidentChatbot(SmartEHSChatbot):
 
     # -------- session helpers --------
     def _sess_path(self, user_id: str) -> Path:
-        return SESS_DIR / f"{re.sub(r'[^a-zA-Z0-9_-]+','_', user_id or 'anon')}.json"
+        safe = re.sub(r"[^a-zA-Z0-9_-]+", "_", user_id or "anon")
+        return SESS_DIR / f"{safe}.json"
 
     def _load_session(self, user_id: str) -> Dict[str, Any]:
         p = self._sess_path(user_id)
@@ -65,8 +70,16 @@ class AVOMOIncidentChatbot(SmartEHSChatbot):
     def _is_incident_reporting_request(self, message: str) -> bool:
         mk = message.lower()
         triggers = [
-            "report incident", "incident report", "report a workplace incident", "i need to report",
-            "accident", "injury", "collision", "spill", "near miss", "safety concern"
+            "report incident",
+            "incident report",
+            "report a workplace incident",
+            "i need to report",
+            "accident",
+            "injury",
+            "collision",
+            "spill",
+            "near miss",
+            "safety concern",
         ]
         return any(t in mk for t in triggers)
 
@@ -83,7 +96,7 @@ class AVOMOIncidentChatbot(SmartEHSChatbot):
             "collected_fields": {},
             "current_field_index": 0,
             "required_fields": list(self.avomo_structure.event_types[incident_type]["required_fields"]),
-            "start_time": time.time()
+            "start_time": time.time(),
         }
         sess = {"mode": "avomo", "data": data}
         self._save_session(user_id, sess)
@@ -93,16 +106,13 @@ class AVOMOIncidentChatbot(SmartEHSChatbot):
 
         prefix = ""
         if is_severe:
-            prefix = ("🚨 **SEVERE EVENT DETECTED** 🚨
-
-" 
-                      f"Type: **{severe_type}**
-
-"
-                      "**IMMEDIATE ACTIONS**: If anyone needs medical attention call 911; notify supervisor;" 
-                      " preserve the scene if safe.
-
-")
+            # NOTE: keep this as one parenthesized literal with explicit \n to avoid unterminated-string issues
+            prefix = (
+                "🚨 **SEVERE EVENT DETECTED** 🚨\n\n"
+                f"Type: **{severe_type}**\n\n"
+                "**IMMEDIATE ACTIONS**: If anyone needs medical attention call 911; "
+                "notify supervisor; preserve the scene if safe.\n\n"
+            )
 
         q = self._get_current_question(data)
         return {
@@ -110,15 +120,13 @@ class AVOMOIncidentChatbot(SmartEHSChatbot):
             "type": "avomo_incident_start",
             "incident_type": incident_type,
             "severe_event": bool(is_severe),
-            "message": prefix +
-                       f"I'll help you report this **{self.avomo_structure.event_types[incident_type]['name']}**.
-
-" 
-                       f"{self.avomo_structure.event_types[incident_type]['description']}
-
-" 
-                       f"**Question 1 of {len(data['required_fields'])}:** {q}",
-            "quick_replies": self._get_quick_replies_for_field(data, data["required_fields"][0])
+            "message": (
+                prefix
+                + f"I'll help you report this **{self.avomo_structure.event_types[incident_type]['name']}**.\n\n"
+                + f"{self.avomo_structure.event_types[incident_type]['description']}\n\n"
+                + f"**Question 1 of {len(data['required_fields'])}:** {q}"
+            ),
+            "quick_replies": self._get_quick_replies_for_field(data, data["required_fields"][0]),
         }
 
     # -------- continue flow --------
@@ -138,11 +146,9 @@ class AVOMOIncidentChatbot(SmartEHSChatbot):
             return {
                 "ok": False,
                 "type": "avomo_incident_retry",
-                "message": f"❌ {v['error']}
-
-**Please re-enter:** {self._get_current_question(data)}",
+                "message": f"❌ {v['error']}\n\n**Please re-enter:** {self._get_current_question(data)}",
                 "field": field,
-                "quick_replies": self._get_quick_replies_for_field(data, field)
+                "quick_replies": self._get_quick_replies_for_field(data, field),
             }
 
         # Save answer
@@ -160,12 +166,10 @@ class AVOMOIncidentChatbot(SmartEHSChatbot):
             return {
                 "ok": True,
                 "type": "avomo_incident_continue",
-                "message": (f"✅ **Recorded**
-
-**Question {prog} of {total}:** {q}"),
+                "message": f"✅ **Recorded**\n\n**Question {prog} of {total}:** {q}",
                 "field": nxt_field,
-                "progress": {"current": prog, "total": total, "percentage": int((prog/total)*100)},
-                "quick_replies": self._get_quick_replies_for_field(data, nxt_field)
+                "progress": {"current": prog, "total": total, "percentage": int((prog / total) * 100)},
+                "quick_replies": self._get_quick_replies_for_field(data, nxt_field),
             }
         else:
             return self._complete_avomo(user_id)
@@ -197,7 +201,10 @@ class AVOMOIncidentChatbot(SmartEHSChatbot):
         if field == "site":
             sites = [s.lower() for s in self.avomo_structure.avomo_sites.values()]
             if resp.lower() not in sites:
-                return {"valid": False, "error": f"Please choose one of: {', '.join(self.avomo_structure.avomo_sites.values())}"}
+                return {
+                    "valid": False,
+                    "error": f"Please choose one of: {', '.join(self.avomo_structure.avomo_sites.values())}",
+                }
         return {"valid": True}
 
     def _complete_avomo(self, user_id: str) -> Dict:
@@ -208,7 +215,7 @@ class AVOMOIncidentChatbot(SmartEHSChatbot):
             "incident_type": data.get("incident_type"),
             "initial_description": data.get("initial_description"),
             "fields": data.get("collected_fields", {}),
-            "started_at": data.get("start_time")
+            "started_at": data.get("start_time"),
         }
         # Append to storage
         out = Path("data/avomo_incidents.json")
@@ -227,14 +234,14 @@ class AVOMOIncidentChatbot(SmartEHSChatbot):
         return {
             "ok": True,
             "type": "avomo_incident_complete",
-            "message": ("✅ **Incident Report Completed** (AVOMO/OSHA)
-
-"
-                        f"Type: {self.avomo_structure.event_types[payload['incident_type']]['name']}
-"
-                        "A formal record has been saved. You can download a PDF from the incidents page."),
-            "record": payload
+            "message": (
+                "✅ **Incident Report Completed** (AVOMO/OSHA)\n\n"
+                f"Type: {self.avomo_structure.event_types[payload['incident_type']]['name']}\n"
+                "A formal record has been saved. You can download a PDF from the incidents page."
+            ),
+            "record": payload,
         }
+
 
 def create_avomo_chatbot():
     return AVOMOIncidentChatbot()
