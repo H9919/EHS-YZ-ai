@@ -5,7 +5,6 @@
 # (Updated: stronger Injury/Illness detection and clarified property-damage keywords)
 
 from typing import Dict, List, Optional, Tuple
-from datetime import datetime
 import re
 
 class AVOMOIncidentStructure:
@@ -16,34 +15,33 @@ class AVOMOIncidentStructure:
         self.avomo_sites = {
             "austin_stassney": "Austin Stassney",
             "atlanta_plymouth": "Atlanta Plymouth", 
-            "atlanta_manheim": "Atlanta Manheim"
+            "atlanta_manheim": "Atlanta Manheim",
         }
         
-        # Severe event criteria (truncated for brevity — keep your original list if longer)
+        # Severe event criteria (representative)
         self.severe_event_criteria = {
             "av_collision_emergency": "AV collision resulting in serious injury or significant property damage",
             "fatality": "Fatality or life-threatening injury",
         }
         
-        # Event types and required fields — keep your original long list if present; this is representative
+        # Event types and required fields — representative subset (extend as needed)
         self.event_types: Dict[str, Dict] = {
             "safety_concern": {
                 "name": "Safety Concern",
                 "description": "You noticed something unsafe or unusual, but no one was hurt and nothing was damaged",
-                "required_fields": ["safety_concern_description", "safety_concern_corrective_action"]
+                "required_fields": ["safety_concern_description", "safety_concern_corrective_action"],
             },
             "injury_illness": {
                 "name": "Injury/Illness", 
                 "description": "Someone got hurt or felt sick while working",
-                # Keep your full OSHA/AVOMO set; representative subset shown here
                 "required_fields": [
                     "event_date", "event_time", "site", "exact_location",
                     "injured_employee_name", "injured_employee_job_title", "employee_status",
                     "injury_illness_description", "injury_illness_type", "affected_body_parts",
                     "injury_illness_immediate_action", "ppe_in_use", "medical_treatment_level",
                     "supervisor_name", "date_supervisor_notified", "time_supervisor_notified",
-                    "enablon_report_submitted"
-                ]
+                    "enablon_report_submitted",
+                ],
             },
             "property_damage": {
                 "name": "Property Damage",
@@ -51,8 +49,8 @@ class AVOMOIncidentStructure:
                 "required_fields": [
                     "event_date", "event_time", "site", "exact_location",
                     "property_damage_description", "approximate_total_cost", 
-                    "property_damage_immediate_action", "enablon_report_submitted"
-                ]
+                    "property_damage_immediate_action", "enablon_report_submitted",
+                ],
             },
             "vehicle_collision": {
                 "name": "Vehicle Collision",
@@ -60,8 +58,8 @@ class AVOMOIncidentStructure:
                 "required_fields": [
                     "event_date", "event_time", "site", "exact_location",
                     "vehicles_involved", "collision_description", "injuries_reported",
-                    "law_enforcement_contacted", "enablon_report_submitted"
-                ]
+                    "law_enforcement_contacted", "enablon_report_submitted",
+                ],
             },
             "environmental": {
                 "name": "Environmental Event",
@@ -69,8 +67,8 @@ class AVOMOIncidentStructure:
                 "required_fields": [
                     "event_date", "event_time", "site", "exact_location",
                     "substance_name", "estimated_volume", "containment_actions", "agency_notified",
-                    "enablon_report_submitted"
-                ]
+                    "enablon_report_submitted",
+                ],
             },
             "near_miss": {
                 "name": "Near Miss",
@@ -78,20 +76,20 @@ class AVOMOIncidentStructure:
                 "required_fields": [
                     "event_date", "event_time", "site", "exact_location",
                     "near_miss_type", "near_miss_description", "near_miss_corrective_action",
-                    "enablon_report_submitted"
-                ]
-            }
+                    "enablon_report_submitted",
+                ],
+            },
         }
 
     # ------------------
-    # Validation & prompts (representative; keep your originals if more complete)
+    # Validation & prompts (representative; extend as needed)
     # ------------------
     def get_validation_rules(self) -> Dict[str, Dict[str, str]]:
         return {
             "event_date": {"pattern": r"^\d{4}-\d{2}-\d{2}$", "error": "Use YYYY-MM-DD."},
             "event_time": {"pattern": r"^\d{2}:\d{2}$", "error": "Use HH:MM in 24h."},
             "injured_employee_phone": {"pattern": r"^[0-9\-\+\s\(\)]{7,}$", "error": "Enter a valid phone number."},
-            "approximate_total_cost": {"pattern": r"^\$?\d+(,\d{3})*(\.\d{2})?$", "error": "Enter a number like 1000 or 1,000.00."}
+            "approximate_total_cost": {"pattern": r"^\$?\d+(,\d{3})*(\.\d{2})?$", "error": "Enter a number like 1000 or 1,000.00."},
         }
 
     def get_field_questions(self) -> Dict[str, str]:
@@ -123,7 +121,7 @@ class AVOMOIncidentStructure:
             "substance_name": "What substance was released?",
             "estimated_volume": "Estimated volume released?",
             "containment_actions": "What containment/cleanup actions were taken?",
-            "agency_notified": "Any agency notified? (EPA/State/Local)"
+            "agency_notified": "Any agency notified? (EPA/State/Local)",
         }
 
     def get_quick_replies(self, field: str) -> List[str]:
@@ -149,11 +147,12 @@ class AVOMOIncidentStructure:
         return base
 
     def validate_severe_event(self, info: Dict) -> Tuple[bool, Optional[str]]:
-        # Simple stub; keep your richer logic
+        # Simple stub; keep your richer logic if you have it
         et = info.get("event_type", "")
         if et == "vehicle_collision":
             return True, "av_collision_emergency"
         return False, None
+
 
 # ----------------------
 # Intent classifier (improved)
@@ -174,12 +173,12 @@ class AVOMOIntentClassifier:
             "injury", "injured", "hurt", "pain", "medical", "sick", "illness",
             "fracture", "fractured", "broke", "broken bone", "sprain", "strain",
             "dislocation", "laceration", "cut", "burn", "shock", "amputation",
-            "hand", "finger", "arm", "wrist", "leg", "ankle", "foot", "back"
+            "hand", "finger", "arm", "wrist", "leg", "ankle", "foot", "back",
         ]
         property_keywords = [
             "property damage", "equipment damage", "tool damage", "machine damage",
             "asset damage", "facility damage", "window", "door", "roof", "wall",
-            "leaking pipe", "broken equipment", "damaged equipment"
+            "leaking pipe", "broken equipment", "damaged equipment",
         ]
         event_type_keywords = {
             "safety_concern": ["unsafe", "concern", "observation", "hazard", "risk", "dangerous"],
@@ -189,20 +188,18 @@ class AVOMOIntentClassifier:
             "vehicle_collision": ["collision", "crash", "hit", "accident", "vehicle", "av"],
             "environmental": ["spill", "leak", "chemical", "environmental", "contamination"],
             "depot_event": ["outage", "emergency", "site-wide", "depot", "system"],
-            "near_miss": ["near miss", "almost", "close call", "could have", "nearly"]
+            "near_miss": ["near miss", "almost", "close call", "could have", "nearly"],
         }
         
         for event_type, keywords in event_type_keywords.items():
             score = 0
             for kw in keywords:
                 if kw in desc_lower:
-                    # Heavier weight for exact injury terms to win over generic "broken"
                     if event_type == "injury_illness" and kw in ("fracture", "fractured", "broke", "broken bone"):
-                        score += 2
+                        score += 2  # heavier weight for clear injury indicators
                     else:
                         score += 1
             if score > 0:
-                # Normalize by len but keep some headroom
                 scores[event_type] = score / max(6, len(keywords))
         
         if not scores:
@@ -217,7 +214,6 @@ class AVOMOIntentClassifier:
         time_match = re.search(r"(\d{1,2}:\d{2}\s?(?:am|pm)?)", desc_lower)
         if time_match:
             extracted_info["estimated_time"] = time_match.group(1)
-        # naive location nudge
         if "garage" in desc_lower:
             extracted_info["estimated_location"] = "garage"
         
