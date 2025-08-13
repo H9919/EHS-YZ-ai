@@ -25,13 +25,12 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _get_user_id() -> str:
-    # Keep it simple; your UI sends 'user_id'
-    return (request.form.get("user_id") or request.json.get("user_id")  # type: ignore
-            if request.is_json else request.form.get("user_id")) or "main_chat_user"
+    if request.is_json:
+        return (request.json or {}).get("user_id") or "main_chat_user"
+    return (request.form.get("user_id") or "main_chat_user").strip()
 
 
 def _parse_context() -> dict:
-    # UI sends 'context' (JSON string) – be resilient if absent/invalid
     raw = request.form.get("context")
     if not raw:
         return {}
@@ -101,16 +100,18 @@ def chat_api():
 
         # If user sent only a file (no text), be helpful instead of failing
         if not message and uploaded_file_info:
-            # If the bot is already running an AVOMO flow, simply acknowledge the attachment;
-            # otherwise, the general bot will also see this via context.
             return jsonify({
                 "ok": True,
                 "type": "file_upload",
-                "message": f"📎 **Attachment saved:** `{uploaded_file_info['filename']}` "
-                           f"({uploaded_file_info['size']} bytes). "
-                           "You can add a description, and I’ll extract any useful details to help fill the report.",
-                "guidance": "If this is an incident report, describe what happened. "
-                            "I’ll auto-suggest fields (time, location, body part, etc.) when I can.",
+                "message": (
+                    f"📎 **Attachment saved:** `{uploaded_file_info['filename']}` "
+                    f"({uploaded_file_info['size']} bytes). "
+                    "You can add a description, and I’ll extract any useful details to help fill the report."
+                ),
+                "guidance": (
+                    "If this is an incident report, describe what happened. "
+                    "I’ll auto-suggest fields (time, location, body part, etc.) when I can."
+                ),
             })
 
         # Normal bot handling (AVOMO flows or general responses)
