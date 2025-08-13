@@ -106,13 +106,12 @@ class AVOMOIncidentChatbot(SmartEHSChatbot):
 
         prefix = ""
         if is_severe:
-            # NOTE: keep this as one parenthesized literal with explicit \n to avoid unterminated-string issues
-            prefix = (
-                "🚨 **SEVERE EVENT DETECTED** 🚨\n\n"
-                f"Type: **{severe_type}**\n\n"
-                "**IMMEDIATE ACTIONS**: If anyone needs medical attention call 911; "
-                "notify supervisor; preserve the scene if safe.\n\n"
-            )
+            lines = [
+                "🚨 **SEVERE EVENT DETECTED** 🚨",
+                f"Type: **{severe_type}**",
+                "**IMMEDIATE ACTIONS**: If anyone needs medical attention call 911; notify supervisor; preserve the scene if safe."
+            ]
+            prefix = "\n\n".join(lines) + "\n\n"
 
         q = self._get_current_question(data)
         return {
