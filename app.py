@@ -1,4 +1,4 @@
-# app.py - FIXED VERSION with error handler properly placed
+# app.py - Updated version with chatbot-first interface
 import os
 import sys
 import json
@@ -20,7 +20,7 @@ def ensure_dirs():
         os.makedirs(directory, exist_ok=True)
 
 def create_app():
-    """Create Flask app with comprehensive error handling"""
+    """Create Flask app with chatbot-first interface"""
     ensure_dirs()
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
@@ -59,27 +59,37 @@ def create_app():
             blueprint_errors.append(f"{display_name}: {str(e)}")
             create_fallback_routes(app, url_prefix, display_name)
     
-    # Core application routes
+    # UPDATED: Core application routes - Chatbot First
     @app.route("/")
     def index():
-        """Main dashboard route with error handling"""
+        """Main chatbot-first interface - no more under maintenance"""
         try:
             stats = get_dashboard_statistics_safe()
             return render_template("enhanced_dashboard.html", stats=stats)
         except Exception as e:
             print(f"⚠ Error in index route: {e}")
-            # Return basic dashboard
+            # Return chatbot interface with default stats
             return render_template("enhanced_dashboard.html", stats=create_default_stats())
 
     @app.route("/dashboard")
     def dashboard():
-        """Traditional dashboard view"""
+        """Traditional analytics dashboard view"""
         try:
             stats = get_dashboard_statistics_safe()
             return render_template("dashboard.html", stats=stats)
         except Exception as e:
             print(f"Error in dashboard route: {e}")
             return render_template("dashboard.html", stats=create_default_stats())
+    
+    @app.route("/chat-only")
+    def chat_only():
+        """Dedicated full-screen chat interface (alternative)"""
+        return render_template("chatbot.html")
+    
+    @app.route("/enhanced")
+    def enhanced_dashboard():
+        """Enhanced dashboard (redirect to main chatbot interface)"""
+        return redirect(url_for("index"))
     
     @app.route("/api/stats")
     def api_stats():
@@ -143,7 +153,7 @@ def create_app():
         status_code = 200 if health_status["status"] == "healthy" else 503
         return jsonify(health_status), status_code
     
-    # Error handlers - MOVED INSIDE create_app() function
+    # Error handlers
     @app.errorhandler(404)
     def not_found_error(error):
         if request.path.startswith('/api/'):
@@ -231,14 +241,15 @@ if __name__ == "__main__":
     debug = os.environ.get("FLASK_ENV") == "development"
     
     print("=" * 60)
-    print("🚀 Starting FIXED Smart EHS Management System")
+    print("🤖 Starting Smart EHS Management System - Chatbot First!")
     print("=" * 60)
     print(f"Port: {port}")
     print(f"Debug mode: {debug}")
     print(f"Environment: {os.environ.get('FLASK_ENV', 'production')}")
     print(f"Python version: {sys.version.split()[0]}")
-    print("🤖 Enhanced AI Chatbot with fixed error handling")
-    print("🔧 All routes properly registered with unique names")
+    print("🚀 AI-First Interface: Chat-based EHS management")
+    print("📊 Analytics Dashboard: Available at /dashboard")
+    print("✨ No more 'under maintenance' - fully operational!")
     print("=" * 60)
     
     app.run(host="0.0.0.0", port=port, debug=debug)
